@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * When we get a socket connection we start a new connection object. This starts a read thread, a receive thread, and a
  * send thread.
- * 
+ *
  * @author Alexander Boyd
  */
 public class Connection {
@@ -21,9 +21,9 @@ public class Connection {
 	 * The read thread continuously reads from the socket and sticks the bytes it reads into the send buffer. It then
 	 * sticks this as a packet onto the send queue, blocking if there isn't space available. It terminates when the
 	 * socket gets closed.
-	 * 
+	 *
 	 * @author Alexander Boyd
-	 * 
+	 *
 	 */
 	public class ReadThread extends Thread {
 		public void run() {
@@ -46,9 +46,9 @@ public class Connection {
 	 * The receive thread continuously puts in read requests to the server. When it receives data, if the data's length
 	 * is greater than 0, it writes the data out to the socket. If this thread gets a response that there is no such
 	 * connection, it closes the socket.
-	 * 
+	 *
 	 * @author Alexander Boyd
-	 * 
+	 *
 	 */
 	public class ReceiveThread extends Thread {
 		public void run() {
@@ -59,7 +59,7 @@ public class Connection {
 					System.out.println("finished receive");
 					output.write(response.data);
 					output.flush();
-					Thread.sleep(1000);
+					Thread.sleep(10);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -79,9 +79,9 @@ public class Connection {
 	 * in size, and sends them off to the server, making sure to wait for the correct response before moving on to the
 	 * next bunch of packets. It sleeps one half of a second between each request. If this thread detects that the source
 	 * socket is closed, and there are no items in the queue, it sends off a connection destroy packet and terminates.
-	 * 
+	 *
 	 * @author Alexander Boyd
-	 * 
+	 *
 	 */
 	public class SendThread extends Thread {
 		public void run() {
@@ -96,7 +96,7 @@ public class Connection {
 					if (bytes != null)
 						out.write(bytes);
 					sendToServer(out.toByteArray());
-					Thread.sleep(1000);
+					Thread.sleep(10);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
