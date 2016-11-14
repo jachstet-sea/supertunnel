@@ -30,8 +30,8 @@ public class Server {
 
 	public static int configPort = 80;
 
-	public static int configReceiveBufferSize = 512;
-	public static int configReceiveQueueSize = 4000;
+	public static int configReceiveBufferSize = 4096;
+	public static int configReceiveQueueSize = 40000;
 	public static int configMaxChunkSize = 50000;
 	public static int configIdleTimeout = 1000 * 60 * 2;
 	public static int configMaxConnections = 10;
@@ -103,7 +103,7 @@ public class Server {
 
 	protected static void processHttpRequest(HttpExchange exchange, HashMap<String, String> parameters) throws IOException {
 		System.out.println("request");
-		exchange.getResponseHeaders().add("Server", "SuperTunnel/0.1, http://code.google.com/p/jwutils/wiki/SuperTunnel");
+		//exchange.getResponseHeaders().add("Server", "SuperTunnel/0.1, http://code.google.com/p/jwutils/wiki/SuperTunnel");
 		String action = parameters.get("action");
 		try {
 			if (action == null)
@@ -158,7 +158,7 @@ public class Server {
 		synchronized (connection) {
 			connection.setup();
 		}
-		exchange.getResponseHeaders().add("Number-Of-Connections", "" + connectionMap.size());
+		//exchange.getResponseHeaders().add("Number-Of-Connections", "" + connectionMap.size());
 		exchange.sendResponseHeaders(200, 0);
 		OutputStream out = exchange.getResponseBody();
 		out.write((connection.connectionId + "\r\n").getBytes());
@@ -173,7 +173,11 @@ public class Server {
 			throw new ResponseException(Constants.httpNoConnection);
 		connectionMap.remove(connection.connectionId);
 		connection.socket.close();
-		exchange.sendResponseHeaders(200, 0);
+		exchange.sendResponseHeaders(200, 4);
+		OutputStream out = exchange.getResponseBody();
+		out.write(("OK\r\n").getBytes());
+		out.flush();
+		out.close();
 		exchange.close();
 	}
 
@@ -205,7 +209,11 @@ public class Server {
 				connection.output.write(data);
 			}
 		}
-		exchange.sendResponseHeaders(200, 0);
+		exchange.sendResponseHeaders(200, 4);
+		OutputStream out = exchange.getResponseBody();
+		out.write(("OK\r\n").getBytes());
+		out.flush();
+		out.close();
 		exchange.close();
 	}
 
@@ -237,11 +245,11 @@ public class Server {
 		byte[] bytes = out.toByteArray();
 		System.out.println("sending " + bytes.length + " bytes to client");
 		exchange.getResponseHeaders().add("Send-Data-Length", "" + bytes.length);
-		exchange.sendResponseHeaders(200, 0);
-		OutputStream output = exchange.getResponseBody();
-		output.write(bytes);
-		output.flush();
-		output.close();
+		exchange.sendResponseHeaders(200, bytes.length);
+		OutputStream out = exchange.getResponseBody();
+		out.write(bytes);
+		out.flush();
+		out.close();
 		exchange.close();
 	}
 
@@ -250,7 +258,11 @@ public class Server {
 		if (connection == null)
 			throw new ResponseException(Constants.httpNoConnection);
 		connection.lastWriteTime = System.currentTimeMillis();
-		exchange.sendResponseHeaders(200, 0);
+		exchange.sendResponseHeaders(200, 4);
+		OutputStream out = exchange.getResponseBody();
+		out.write(("OK\r\n").getBytes());
+		out.flush();
+		out.close();
 		exchange.close();
 	}
 

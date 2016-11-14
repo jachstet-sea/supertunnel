@@ -19,9 +19,9 @@ import jw.supertunnel.Constants;
 import jw.supertunnel.server.ResponseException;
 
 /**
- * 
+ *
  * @author Alexander Boyd
- * 
+ *
  */
 public class Client {
 	public static ServerSocket server;
@@ -91,6 +91,7 @@ public class Client {
 		URL url = createRequestUrl(query);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod(method);
+		connection.setRequestProperty("User-Agent","NotYourUserAgent");
 		connection.setDoOutput(input != null);
 		if (input != null) {
 			OutputStream out = connection.getOutputStream();
