@@ -224,12 +224,12 @@ public class Server {
 		if (connection == null)
 			throw new ResponseException(Constants.httpNoConnection);
 		connection.lastWriteTime = System.currentTimeMillis();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			boolean streamEnded = false;
 			byte[] bytes = connection.receiveQueue.poll(30, TimeUnit.SECONDS);
 			while (bytes != null) {
-				out.write(bytes);
+				baos.write(bytes);
 				if (bytes == endOfStream) {
 					streamEnded = true;
 					break;
@@ -242,7 +242,7 @@ public class Server {
 		} catch (InterruptedException e) {
 			throw new IOException("STUPID, GOSHDARNED INTERRUPTEDEXCEPTION", e);
 		}
-		byte[] bytes = out.toByteArray();
+		byte[] bytes = baos.toByteArray();
 		System.out.println("sending " + bytes.length + " bytes to client");
 		exchange.getResponseHeaders().add("Send-Data-Length", "" + bytes.length);
 		exchange.sendResponseHeaders(200, bytes.length);
