@@ -84,14 +84,19 @@ public class Client {
 	}
 
 	public static Response request(String method, String query, byte[] input) throws IOException {
+		return request(method, query, input, 0);
+	}
+
+	public static Response request(String method, String query, byte[] input, int timeout) throws IOException {
 		if (query == null)
 			query = "bogus=" + generateBogus();
 		else
 			query = "bogus=" + generateBogus() + "&" + query;
 		URL url = createRequestUrl(query);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setReadTimeout(timeout);
 		connection.setRequestMethod(method);
-		connection.setRequestProperty("User-Agent","NotYourUserAgent");
+		connection.setRequestProperty("User-Agent","NYUA");
 		connection.setDoOutput(input != null);
 		if (input != null) {
 			OutputStream out = connection.getOutputStream();

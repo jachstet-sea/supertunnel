@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -116,9 +117,27 @@ public class Connection {
 	}
 
 	public void sendToServer(byte[] data) throws IOException {
-		System.out.println("starting send");
-		Response response = Client.request("POST",
-				"action=send&connection=" + connectionId + "&length=" + data.length + "&sequence=" + (lastReadSequence++), data);
+		Boolean sendOk = false;
+		int retryCount = 0;
+		Response response = new Response();
+
+		while (!sendOk) {
+			try {
+				System.out.println("starting send - try " + retryCount);
+				response = Client.request("POST",
+						"action=send&connection=" + connectionId + "&length=" + data.length + "&sequence=" + (lastReadSequence++), data, 2000);
+			} catch (SocketTimeoutException e) {
+				System.out.println("SocketTimeoutException - retrying");
+				retryCount += 1;
+				lastReadSequence--;
+				continue;
+			} catch (IOException e) {
+				System.out.println("Other IOException - failing");
+				retryCount += 1;
+				throw e;
+			}
+			sendOk = true;
+		}
 		System.out.println("finished send");
 		if (response.status != 200)
 			throw new IOException("Response code " + response.status + " received, expected 200");
@@ -127,7 +146,9 @@ public class Connection {
 	public void destroyConnection() {
 		synchronized (destroyLock) {
 			try {
+				System.out.println("starting destroy");
 				Client.request("GET", "action=destroy&connection=" + connectionId, null);
+				System.out.println("finished destroy");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -155,7 +176,9 @@ public class Connection {
 	}
 
 	private void establishConnection() throws IOException {
+		System.out.println("starting create");
 		Response response = Client.request("GET", "action=create", null);
+		System.out.println("finished create");
 		if (response.status != 200)
 			throw new IOException("Response code " + response.status + " received from the server");
 		connectionId = new String(response.data).trim();
